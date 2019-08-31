@@ -1,0 +1,59 @@
+contract ProofOfSummit =
+
+    record state = {
+        author : string, 
+        obj_summit : summit, 
+        testvalue: int}
+
+    record summit = {
+        first : string,
+        second : string}
+
+    stateful entrypoint init() = 
+        { author = "",
+            obj_summit={first="",second=""},
+            testvalue = 999}
+    
+    public entrypoint read_test_value() : int =
+        state.testvalue
+    
+    public entrypoint return_caller() : address =
+        Call.caller
+    
+    public stateful entrypoint add_test_value(one: int, two: int) : int =
+        put(state{testvalue = one + two})
+        one + two
+    
+    public entrypoint locally_add_two(one: int, two: int) : int =
+        one + two
+    
+    public stateful entrypoint statefully_add_two(one: int, two: int) =
+        put(state{testvalue = one + two})
+    
+    stateful entrypoint create_summit(author: string, first: string, second: string) =
+        let dna : int = generate_random_int(author)
+        create_summit_by_author(author, first,second)
+
+    entrypoint get_summit_author() : string =
+        state.author
+    
+    entrypoint get_summit() : string =
+        let needed_summit : summit = state.obj_summit
+        String.concat(needed_summit.first, needed_summit.second)
+
+    private stateful function create_summit_by_author(author: string, first: string,second: string) =
+        let new_summit : summit = {
+            first=first,
+            second = second}
+        put(state{obj_summit = new_summit})
+
+    private function generate_random_int(name: string) : int =
+        get_block_hash_bytes_as_int()
+
+    private function get_block_hash_bytes_as_int() : int =
+        switch(Chain.block_hash(Chain.block_height - 1))
+            None => abort("blockhash not found")
+            Some(bytes) => Bytes.to_int(bytes)
+
+    entrypoint test(name: string) : hash =
+        String.sha3(name)
